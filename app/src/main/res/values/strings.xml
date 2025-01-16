@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">TopwisePos</string>
+    <string name="amount">Amount</string>
+    <string name="key_exchange">key Exchange</string>
+    <string name="purchase">Purchase</string>
+    <string name="text">Attached to Keyboard</string>
+    <string name="enter">Enter</string>
+</resources>
