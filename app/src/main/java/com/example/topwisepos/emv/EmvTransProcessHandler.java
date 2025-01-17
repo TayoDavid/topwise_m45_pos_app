@@ -5,9 +5,9 @@ import android.content.ContextWrapper;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.os.ConditionVariable;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
 import android.text.TextUtils;
@@ -25,6 +25,8 @@ import com.example.topwisepos.param.AidParam;
 import com.example.topwisepos.param.AppCombinationHelper;
 import com.example.topwisepos.param.CapkParam;
 import com.example.topwisepos.transmit.Online;
+import com.example.topwisepos.utils.CardUtil;
+import com.example.topwisepos.utils.ExtensionsKt;
 import com.topwise.cloudpos.aidl.buzzer.AidlBuzzer;
 import com.topwise.cloudpos.aidl.emv.level2.Combination;
 import com.topwise.cloudpos.aidl.emv.level2.EmvCapk;
@@ -32,7 +34,6 @@ import com.topwise.cloudpos.aidl.pinpad.AidlPinpad;
 import com.topwise.cloudpos.aidl.pinpad.GetPinListener;
 import com.topwise.cloudpos.aidl.pinpad.PinParam;
 import com.topwise.cloudpos.aidl.printer.AidlPrinter;
-import com.topwise.cloudpos.aidl.printer.AidlPrinterListener;
 import com.topwise.cloudpos.aidl.printer.Align;
 import com.topwise.cloudpos.aidl.printer.ImageUnit;
 import com.topwise.cloudpos.aidl.printer.PrintTemplate;
@@ -111,6 +112,8 @@ public class EmvTransProcessHandler extends ETransProcessListenerImpl {
 
     public static void print(ContextWrapper context, TransData data, MainActivity.PrintListener listener) {
         try {
+            Typeface typeface = Typeface.createFromAsset(context.getAssets(),"topwise.ttf");
+            PrintTemplate.getInstance().init(context,typeface);
             PrintTemplate template = PrintTemplate.getInstance();
             template.clear();
 
@@ -124,10 +127,19 @@ public class EmvTransProcessHandler extends ETransProcessListenerImpl {
             template.add(new TextUnit("Merchant ID: " + data.getMerchID()));
             template.add(new TextUnit("Card No: " + data.getPan()));
             template.add(new TextUnit("Card Holder: " + data.getCardHolderName()));
-            template.add(new TextUnit("Card Type: " + data.getTag8A()));
+            template.add(new TextUnit("Card Type: " + CardUtil.INSTANCE.getCardTypFromAid(data.getAid())));
             template.add(new TextUnit("Card S/N: " + data.getCardSerialNo()));
             template.add(new TextUnit("Exp Date: " + data.getExpDate()));
-            template.add(new TextUnit("Amount: " + data.getAmount()));
+            template.add(new TextUnit("Aid: " + data.getAid()));
+
+            template.add(new TextUnit("DateTime: " + data.getDatetime()));
+            template.add(new TextUnit("RRN: " + data.getRefNo()));
+            template.add(new TextUnit("ResponseCode: " + data.getResponseCode()));
+            template.add(new TextUnit(""));
+            template.add(new TextUnit("Amount: "));
+            template.add(new TextUnit(""));
+            template.add(new TextUnit(ExtensionsKt.getToAmount(data.getAmount()), largeFontSize));
+            template.add(new TextUnit("\n\n\n\n"));
 
             AidlPrinter printer = TWApplication.usdkManage.getPrinter();
 
