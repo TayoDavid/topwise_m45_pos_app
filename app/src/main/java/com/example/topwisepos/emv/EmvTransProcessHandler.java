@@ -27,9 +27,11 @@ import com.example.topwisepos.param.CapkParam;
 import com.example.topwisepos.transmit.Online;
 import com.example.topwisepos.utils.CardUtil;
 import com.example.topwisepos.utils.ExtensionsKt;
+import com.example.topwisepos.utils.LedColor;
 import com.topwise.cloudpos.aidl.buzzer.AidlBuzzer;
 import com.topwise.cloudpos.aidl.emv.level2.Combination;
 import com.topwise.cloudpos.aidl.emv.level2.EmvCapk;
+import com.topwise.cloudpos.aidl.led.AidlLed;
 import com.topwise.cloudpos.aidl.pinpad.AidlPinpad;
 import com.topwise.cloudpos.aidl.pinpad.GetPinListener;
 import com.topwise.cloudpos.aidl.pinpad.PinParam;
@@ -38,6 +40,7 @@ import com.topwise.cloudpos.aidl.printer.Align;
 import com.topwise.cloudpos.aidl.printer.ImageUnit;
 import com.topwise.cloudpos.aidl.printer.PrintTemplate;
 import com.topwise.cloudpos.aidl.printer.TextUnit;
+import com.topwise.cloudpos.data.LedCode;
 import com.topwise.cloudpos.data.PinpadConstant;
 import com.topwise.cloudpos.struct.BytesUtil;
 import com.topwise.manager.AppLog;
@@ -56,6 +59,7 @@ import com.topwise.toptool.impl.TopTool;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Creation date：2021/6/23 on 16:30
@@ -66,7 +70,6 @@ public class EmvTransProcessHandler extends ETransProcessListenerImpl {
     private static final String TAG = EmvTransProcessHandler.class.getSimpleName();
 
     private final AidlPinpad mPinPad = TWApplication.usdkManage.getPinpad(0);
-    private final AidlBuzzer buzzer = TWApplication.usdkManage.getBuzzer();
 
     private final TransData transData;
     private ConditionVariable cv;
@@ -108,6 +111,19 @@ public class EmvTransProcessHandler extends ETransProcessListenerImpl {
     public static void beep() throws RemoteException {
         AidlBuzzer buzzer = TWApplication.usdkManage.getBuzzer();
         buzzer.beep(0, 1000);
+    }
+
+    public static void blinkLed(LedColor color) throws RemoteException {
+        LedColor ledColor;
+        int colorCode = 0;
+        ledColor = Objects.requireNonNullElse(color, LedColor.GREEN);
+        switch (ledColor) {
+            case RED: colorCode = LedCode.OPER_LED_RED; break;
+            case GREEN: colorCode = LedCode.OPER_LED_GREEN; break;
+            case YELLOW: colorCode = LedCode.OPER_LED_YELLOW; break;
+        }
+        AidlLed led = TWApplication.usdkManage.getLed();
+        led.setLed(colorCode, true);
     }
 
     public static void print(ContextWrapper context, TransData data, MainActivity.PrintListener listener) {
